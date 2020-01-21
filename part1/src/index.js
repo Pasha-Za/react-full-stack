@@ -103,7 +103,7 @@ const App = () => {
 }
 
 // part 1 exersise
-const FeedbackStatistic = ({good, netural, bad}) => {
+const FeedbackVotes = ({good, netural, bad}) => {
     return (
         <>
             <h4>Statistic</h4>
@@ -116,23 +116,45 @@ const FeedbackStatistic = ({good, netural, bad}) => {
     )
 }
 
+const FeedbackStats = ({all, average, positive}) => {
+    let positiveMarkup;
+    if (positive) {
+        positiveMarkup = <p>Positive: {positive} %</p>
+    } else  {
+        positiveMarkup = <p>Positive: no feedbacks yet</p>
+    }
+    return (
+        <div className="statistic">
+            <p>All: {all}</p>
+            <p>Average: {average}</p>
+            {positiveMarkup}
+        </div>
+    )
+}
+
 const CafePanel = () => {
     const [good, setGood] = useState(0)
     const [netural, setNetural] = useState(0)
     const [bad, setBad] = useState(0)
+    const [allFeedbacks, setAllFeedbacks] = useState([])
+
+    const feedbacksAmount = allFeedbacks.length
 
     const addFeedback = (feedback) => () => {
         switch (feedback) {
             case 'good':
                 setGood(good + 1)
+                setAllFeedbacks(allFeedbacks.concat(1))
                 break;
 
             case 'netural':
                 setNetural(netural + 1)
+                setAllFeedbacks(allFeedbacks.concat(0))
                 break;
 
             case 'bad':
                 setBad(bad + 1)
+                setAllFeedbacks(allFeedbacks.concat(-1))
                 break;
         
             default:
@@ -140,6 +162,20 @@ const CafePanel = () => {
         }
     }
 
+    const feedbackAverage = () => {
+        let result = 0;
+        if (feedbacksAmount > 0) {            
+            result = allFeedbacks.reduce((pervVal, curVal) => pervVal + curVal) / feedbacksAmount
+        }
+        return result;
+    }
+
+    const positiveAmount = () => {
+        let positives = [];
+        allFeedbacks.forEach(feedback => feedback === 1 && positives.push(feedback))
+        return !!(positives.length / feedbacksAmount) && positives.length / feedbacksAmount * 100;
+    }
+    
     return (
         <div className="cafe-panel">
             <h3>Give your feedback</h3>
@@ -147,7 +183,8 @@ const CafePanel = () => {
             <Button onClick={addFeedback('netural')} text="netural"/>
             <Button onClick={addFeedback('bad')} text="bad"/>
 
-            <FeedbackStatistic good={good} netural={netural} bad={bad}/>
+            <FeedbackVotes good={good} netural={netural} bad={bad}/>
+            <FeedbackStats all={feedbacksAmount} average={feedbackAverage()} positive={positiveAmount()}/>
         </div>
     )
 }
