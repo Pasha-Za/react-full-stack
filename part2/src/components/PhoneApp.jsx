@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PhoneContact from './PhoneContact';
 import PhoneFilter from './PhoneFilter';
-import axios from 'axios';
+import PhoneService from '../services/phone';
 
 const PhoneApp = () => {
     const [contacts, setContacts] = useState([]);
@@ -10,12 +10,10 @@ const PhoneApp = () => {
     const [searchValue, setSearchValue] = useState('');
 
     useEffect(() => {
-      axios
-        .get('http://localhost:3005/persons')
-        .then(response => {
-          setContacts(response.data);
-           console.log("use effect");
-        })
+      PhoneService.getAll().then(initialData => {
+        setContacts(initialData);
+        console.log("use effect");
+      });
     }, []);
      console.log("render", contacts.length);
 
@@ -27,14 +25,6 @@ const PhoneApp = () => {
         )
       : contacts;
 
-    const contactList = contactsToShow.map(contact => (
-      <PhoneContact
-        name={contact.name}
-        number={contact.number}
-        key={contact.name}
-      />
-    ));
-
     const addNewContact = (event) => {
         event.preventDefault();
 
@@ -44,14 +34,35 @@ const PhoneApp = () => {
         };
 
         if (isNewContactExist()) {
-            alert(`${newContact} is already added to phonebook`);
+            PhoneService.update(isNewContactExist().id, {
+              ...isNewContactExist(),
+              number: newPhone
+            }).then(updatedContact => {
+              setContacts(
+                contacts.map(contact =>
+                  contact.id !== isNewContactExist().id
+                    ? contact
+                    : updatedContact
+                )
+              );
+              setNewContact("");
+              setNewPhone("");
+            });
         } else if (newContact && newPhone) {
-            setContacts(contacts.concat(newContactObj));
-            setNewContact('');
-            setNewPhone('');
+            PhoneService.create(newContactObj).then(newContact => {
+              setContacts(contacts.concat(newContact));
+              setNewContact('');
+              setNewPhone('');
+            });
         } else {
             alert('Some fields are empty')
         }
+    }
+
+    const deleteContact = id => () => {
+      PhoneService.remove(id).then(() => {
+        setContacts(contacts.filter(contact => contact.id !== id));
+      });
     }
 
     const handleNewContact = (event) => {
@@ -67,6 +78,15 @@ const PhoneApp = () => {
     const isNewContactExist = () => {     
         return contacts.find(contact => contact.name === newContact);
     }
+
+    const contactList = contactsToShow.map(contact => (
+      <PhoneContact
+        name={contact.name}
+        number={contact.number}
+        key={contact.name}
+        deleteContact={deleteContact(contact.id)}
+      />
+    ));
 
     return (
       <div className="phone-board">
