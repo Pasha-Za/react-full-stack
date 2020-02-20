@@ -1,24 +1,57 @@
 import React, {useEffect} from 'react';
-import NewNote from './components/NewNote';
-import NotesList from './components/NotesList';
-import Notification from './components/Notification';
-import Filter from './components/Filter';
 import {initNotes} from './reducers/anecdoteReducer';
 import { connect } from 'react-redux';
+import MainPage from './components/pages/MainPage';
+import NewNotePage from "./components/pages/NewNotePage";
+import {
+  BrowserRouter as Router,
+  Route, Link, Redirect,
+} from 'react-router-dom'
+import Note from './components/Note';
+import NotesList from './components/NotesList';
+import NoResultPage from './components/pages/NoResultPage';
 
-const App = ({ initNotes }) => {
+const App = ({ initNotes, anecdotes }) => {
   useEffect(() => {
     initNotes();
-  });
+  }, [initNotes]);
+
+  const getNoteById = id =>
+    anecdotes.find(anecdote => anecdote.id === id);
 
   return (
     <div>
-      <Notification />
-      <Filter />
-      <NotesList />
-      <NewNote />
+      <Router>
+        <nav>
+          <Link to="/">main</Link>
+          <Link to="/create">create new</Link>
+          <Link to="/anecdotes">anecdotes</Link>
+        </nav>
+        <Route exact path="/" render={() => <MainPage />} />
+        <Route path="/create" render={() => <NewNotePage />} />
+        <Route path="/noresult" render={() => <NoResultPage />} />
+        <Route exact path="/anecdotes" render={() => {
+          return <NotesList anecdotes={anecdotes}/>;
+        }} />
+        <Route exact path="/anecdotes/:id" render={({match}) => {
+          return <Note anecdote={getNoteById(match.params.id)} />;
+        }} />
+        <Route path="/admin" render={() => {
+          return false ? <MainPage /> : <Redirect to="/noresult" />;
+        }}/>
+      </Router>
+      <footer>
+        <hr />
+        Dummy footer
+      </footer>
     </div>
   );
 };
 
-export default connect(null, { initNotes })(App);
+const mapStateToProps = ({anecdotes}) => {
+  return {
+    anecdotes
+  };
+}
+
+export default connect(mapStateToProps, { initNotes })(App);

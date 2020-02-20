@@ -2,8 +2,9 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { addNewNote } from '../reducers/anecdoteReducer';
 import { setNotification } from "../reducers/notificationReducer";
+import {withRouter} from "react-router-dom";
 
-const NewNote = ({ addNewNote, setNotification }) => {
+const NewNoteAdd = ({ addNewNote, setNotification, history }) => {
   const handleSubmit = event => {
     event.preventDefault();
 
@@ -11,7 +12,8 @@ const NewNote = ({ addNewNote, setNotification }) => {
     event.target.note.value = '';
 
     addNewNote(noteText).then((newNote) => {
-      setNotification(`"${newNote}" was created`, 3000);
+      history.push('/');
+      setNotification(`"${newNote}" was created`, 8000);
     });
   };
 
@@ -28,4 +30,6 @@ const NewNote = ({ addNewNote, setNotification }) => {
   );
 };
  
-export default connect(null, { addNewNote, setNotification })(NewNote);
+const NewNoteState = connect(null, { addNewNote, setNotification })(NewNoteAdd);
+const NewNote = withRouter(NewNoteState);
+export default NewNote;
