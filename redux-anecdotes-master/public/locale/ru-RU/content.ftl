@@ -1,0 +1,3 @@
+hello-world = Привет мир!
+just-met-you = Мы только встретились!
+it-s-crazy = И это круто…
