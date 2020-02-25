@@ -1,0 +1,4 @@
+{
+  "filePattern": "./src/**/*.{js,jsx}",
+  "outputDir": "./public/locales/new-strings/",
+}
