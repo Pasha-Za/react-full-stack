@@ -9,76 +9,43 @@ import { connect } from 'react-redux';
 
 //gql
 import { useQuery, useMutation, useApolloClient } from "@apollo/react-hooks";
-import { gql } from "apollo-boost";
 import Persons from './components/Persons';
 import PersonForm from './components/PersonFrom';
 import PhoneForm from './components/PhoneForm';
 
+import { CREATE_PERSON } from './gql/mutations/createPerson'
+import { EDIT_NUMBER } from './gql/mutations/editNumber'
+import { LOGIN } from './gql/mutations/login'
+import { ALL_PERSONS } from './gql/queries/allPersons'
+
 //context
-// import { userContext } from './context/user';
+import { useStateValue } from './context/contextState';
 
-const PERSON_DETAILS = gql`
-  fragment PersonDetails on Person {
-    id
-    name
-    phone 
-    address {
-      street 
-      city
-    }
-  }
-`
+import ThemeToggler from './components/ThemeToggler';
+import './styles/index.scss';
 
-const ALL_PERSONS = gql`
-  {
-    allPersons {
-      name
-      id
-      phone
-    }
-  }
-`;
-
-const CREATE_PERSON = gql`
-  mutation createPerson(
-    $name: String!
-    $street: String!
-    $city: String!
-    $phone: String
-  ) {
-    addPerson(name: $name, street: $street, city: $city, phone: $phone) {
-      ...PersonDetails
-    }
-  }
-  ${PERSON_DETAILS}
-`;
-
-const EDIT_NUMBER = gql`
-  mutation editNumber($name: String!, $phone: String!) {
-    editNumber(name: $name, phone: $phone) {
-      ...PersonDetails
-    }
-  }
-  ${PERSON_DETAILS}
-`;
-
-const LOGIN = gql`
-  mutation login($username: String!, $password: String!) {
-    login(username: $username, password: $password)  {
-      value
-    }
-  }
-`
+const bodyClassToggler = (cssClass) => {
+  document.body.classList.contains('white') && document.body.classList.remove('white');
+  document.body.classList.contains('black') && document.body.classList.remove('black');
+  document.body.classList.add(cssClass);
+};
 
 const App = ({ initNotes }) => {
+  
+  // Context state
+  const [{ user:{ token }, theme:{theme} }, dispatch] = useStateValue();
+  
   useEffect(() => {
     initNotes();
+    console.log('Notes watch');
   }, [initNotes]);
 
-  // Context state
-  // const { token, setToken } = useContext(userContext);
+  useEffect(() => {
+    console.log("Theme was changed to " + theme);
+    bodyClassToggler(theme);
+  }, [theme]);
 
-  const [token, setToken] = useState(null);
+  // const [token, setToken] = useState(null);
 
   const [errorMessage, setErrorMessage] = useState(null);
   const handleError = error => {
@@ -111,6 +78,15 @@ const App = ({ initNotes }) => {
     onError: handleError
   });
 
+  const setToken = (token) => {
+    console.log(token);
+    
+    dispatch({
+      type: 'setToken',
+      payload: token
+    });
+  };
+
   // error message
   const errorNotification = () => errorMessage &&
     <div style={{ color: 'red' }}>
@@ -119,10 +95,15 @@ const App = ({ initNotes }) => {
 
   // logout function
   const logout = () => {
-    setToken(null)
+    dispatch({
+      type: 'setToken',
+      payload: null
+    });
     localStorage.clear()
     client.resetStore()
   }
+
+  const currentTheme = () => theme;
 
   if(!token) {
     return (
@@ -138,7 +119,9 @@ const App = ({ initNotes }) => {
   }
 
   return (
-    <div>
+    <div className={currentTheme()}>
+      <ThemeToggler />
+
       <Notification />
       <Filter />
       <NotesList />

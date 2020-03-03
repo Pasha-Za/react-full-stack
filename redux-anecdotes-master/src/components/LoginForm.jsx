@@ -11,7 +11,7 @@ const LoginForm = ({ login, setToken }) => {
         //     variables: { username, password }
         // })
 
-        const token = '1234567';
+        const token = password;
         setToken(token);
         localStorage.setItem('phonenumbers-user-token', token);
     }
